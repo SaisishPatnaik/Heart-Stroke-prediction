@@ -2,18 +2,24 @@ import streamlit as st
 import pandas as pd
 import joblib
 
+# LOAD TRAINED MODEL AND PREPROCESSING
 
-model = joblib.load('knn_model.pkl')
-scaler = joblib.load('scaler.pkl')
-columns = joblib.load('feature_columns.pkl')
-
-
-
-st.title("Heart Disease Prediction by Saisish")
-st.markdown("Provide the following details:")
+model = joblib.load("knn_model.pkl")
+scaler = joblib.load("scaler.pkl")
+columns = joblib.load("feature_columns.pkl")
 
 
-age = st.slider("Age", 18, 100, 40)
+# PAGE TITLE
+st.title("Heart Stroke Prediction Application")
+st.markdown("### Enter the patient's details below")
+
+# USER INPUTS
+age = st.slider(
+    "Age",
+    min_value=18,
+    max_value=100,
+    value=40
+)
 
 sex = st.selectbox(
     "Sex",
@@ -32,16 +38,16 @@ chest_pain_type = st.selectbox(
 
 resting_blood_pressure = st.number_input(
     "Resting Blood Pressure",
-    80,
-    200,
-    120
+    min_value=80,
+    max_value=200,
+    value=120
 )
 
 cholesterol = st.number_input(
     "Cholesterol (mg/dL)",
-    100,
-    600,
-    200
+    min_value=100,
+    max_value=600,
+    value=200
 )
 
 fbs = st.selectbox(
@@ -60,9 +66,9 @@ restecg = st.selectbox(
 
 max_heart_rate = st.number_input(
     "Maximum Heart Rate",
-    60,
-    220,
-    150
+    min_value=60,
+    max_value=220,
+    value=150
 )
 
 exang = st.selectbox(
@@ -72,9 +78,10 @@ exang = st.selectbox(
 
 oldpeak = st.number_input(
     "Oldpeak (ST Depression)",
-    0.0,
-    10.0,
-    1.0
+    min_value=0.0,
+    max_value=10.0,
+    value=1.0,
+    step=0.1
 )
 
 st_slope = st.selectbox(
@@ -88,101 +95,97 @@ st_slope = st.selectbox(
 
 ca = st.selectbox(
     "Number of Major Vessels",
-    [0, 1, 2, 3]
+    [0, 1, 2, 3, 4]
 )
 
 thal = st.selectbox(
     "Thalassemia",
-    [
-        "Normal",
-        "Fixed Defect",
-        "Reversible Defect"
-    ]
+    [0, 1, 2, 3]
 )
 
 
-# -----------------------------
-# Prediction
-# -----------------------------
+# PREDICTION
 
 if st.button("Predict"):
 
     raw_data = {
 
-        'age': age,
+        "age": age,
 
-        'sex': 1 if sex == "Male" else 0,
+        "sex": 1 if sex == "Male" else 0,
 
-        'cp': (
+        "cp": (
             0 if chest_pain_type == "Typical Angina"
             else 1 if chest_pain_type == "Atypical Angina"
             else 2 if chest_pain_type == "Non-Anginal Pain"
             else 3
         ),
 
-        'trestbps': resting_blood_pressure,
+        "trestbps": resting_blood_pressure,
 
-        'chol': cholesterol,
+        "chol": cholesterol,
 
-        'fbs': 1 if fbs == "Yes" else 0,
+        "fbs": 1 if fbs == "Yes" else 0,
 
-        'restecg': (
+        "restecg": (
             0 if restecg == "Normal"
             else 1 if restecg == "ST-T Abnormality"
             else 2
         ),
 
-        'thalach': max_heart_rate,
+        "thalach": max_heart_rate,
 
-        'exang': 1 if exang == "Yes" else 0,
+        "exang": 1 if exang == "Yes" else 0,
 
-        'oldpeak': oldpeak,
+        "oldpeak": oldpeak,
 
-        'slope': (
+        "slope": (
             0 if st_slope == "Upsloping"
             else 1 if st_slope == "Flat"
             else 2
         ),
 
-        'ca': ca,
+        "ca": ca,
 
-        'thal': (
-            0 if thal == "Normal"
-            else 1 if thal == "Fixed Defect"
-            else 2
-        )
+        "thal": thal
     }
+
+
 
 
     input_data = pd.DataFrame([raw_data])
     input_data = input_data[columns]
 
 
-    # Check for missing values
+  
+
     if input_data.isnull().sum().sum() > 0:
 
         st.error("Some input values are missing.")
 
+        st.write(input_data)
+
     else:
 
-        # Scale input
+
         scaled_input_data = scaler.transform(input_data)
 
-        # Prediction
+        # Make prediction
         prediction = model.predict(scaled_input_data)[0]
 
 
         # Display result
+
         if prediction == 1:
 
             st.error(
-                "The patient is at high risk of heart disease."
+                "🔴 High Risk: The model predicts a higher likelihood of heart disease."
             )
 
         else:
 
             st.success(
-                "The patient is at low risk of heart disease."
+                "🟢 Low Risk: The model predicts a lower likelihood of heart disease."
             )
     
     
